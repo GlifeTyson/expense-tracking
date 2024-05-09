@@ -5,29 +5,30 @@ import { GraphQLLocalStrategy } from "graphql-passport";
 
 export const passportConfig = async () => {
   passport.serializeUser((user, done) => {
-    console.log("serializeUser");
+    console.log("Serializing user");
     done(null, user._id);
   });
 
-  passport.deserializeUser(async (id, done) => {
-    console.log("deserializeUser");
+  passport.deserializeUser(async (_id, done) => {
+    console.log("Deserializing user");
     try {
-      const user = await User.findById(id);
+      const user = await User.findById(_id);
       done(null, user);
-    } catch (error) {
-      done(error, null);
+    } catch (err) {
+      done(err);
     }
   });
+
   passport.use(
     new GraphQLLocalStrategy(async (username, password, done) => {
       try {
         const user = await User.findOne({ username: username });
         if (!user) {
-          throw new Error("User not found");
+          throw new Error("Username not found");
         }
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) {
-          return done(null, false, { message: "Incorrect password" });
+          throw new Error("Password is not correct");
         }
         return done(null, user);
       } catch (error) {
