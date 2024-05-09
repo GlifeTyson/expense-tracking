@@ -6,15 +6,47 @@ import http from "http";
 import cors from "cors";
 import mergedResolver from "./resolvers/index.js";
 import mergedTypeDefs from "./typeDefs/index.js";
-import { connectDb } from "./db/connectDb.js";
 import dotenv from "dotenv";
-dotenv.config();
+import passport from "passport";
+import session from "express-session";
+import ConnectMongoDBSession from "connect-mongodb-session";
+import { connectDb } from "./db/connectDb.js";
+import { GraphQLLocalStrategy, buildContext } from "graphql-passport";
+import { passportConfig } from "./passport/passport.config.js";
+
+dotenv.config(); // load .env
+passportConfig(); // initialize passport
 // Required logic for integrating with Express
 const app = express();
 // Our httpServer handles incoming requests to our Express app.
 // Below, we tell Apollo Server to "drain" this httpServer,
 // enabling our servers to shut down gracefully.
 const httpServer = http.createServer(app);
+const MongoDBStore = ConnectMongoDBSession(session);
+
+const store = new MongoDBStore({
+  uri: process.env.DB_URI,
+  collection: "sessions",
+});
+store.on("error", (error) => {
+  console.log(error);
+});
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET,
+    resave: false, //this option is used to prevent session resave on every request
+    saveUninitialized: false, //this option is used to prevent saving uninitialized sessions
+    cookie: {
+      maxAge: 1000 * 60 * 60 * 24 * 7, //expires after 7 days (1s * 60) = (1 min * 60) = (1 hour * 24) *7 = 1 day * 7
+      httpOnly: true, //this option is prevented from being accessed by client-side javascript
+    },
+    store: store,
+  })
+);
+
+app.use(passport.initialize());
+app.use(passport.session());
+
 const server = new ApolloServer({
   typeDefs: mergedTypeDefs,
   resolvers: mergedResolver,
@@ -27,13 +59,16 @@ await server.start();
 // and our expressMiddleware function.
 app.use(
   "/",
-  cors(),
+  cors({
+    origin: "http://localhost:3000",
+    credentials: true,
+  }),
   express.json({ limit: "50mb" }), // parse JSON bodies
   express.urlencoded({ extended: true, limit: "50mb" }), // parse URL-encoded bodies
   // expressMiddleware accepts the same arguments:
   // an Apollo Server instance and optional configuration options
   expressMiddleware(server, {
-    context: async ({ req }) => ({ req }),
+    context: async ({ req, res }) => buildContext({ req, res }),
   })
 );
 
