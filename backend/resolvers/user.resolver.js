@@ -4,12 +4,23 @@ import bcrypt from "bcryptjs";
 
 const userResolver = {
   Query: {
-    users: () => {
-      return users;
+    authUser: async (_, __, context) => {
+      try {
+        const user = await context.getUser();
+        return user;
+      } catch (error) {
+        console.error("error in authUser: ", err);
+        throw new Error(err.message || "Internal server error");
+      }
     },
-    user: (_, { userId }) => {
-      const userMap = new Map(users.map((user) => [user._id, user]));
-      return userMap.get(userId);
+    user: async (_, { userId }) => {
+      try {
+        const userMap = await User.findById(userId);
+        return userMap.get(userId);
+      } catch (error) {
+        onsole.error("error in user query: ", err);
+        throw new Error(err.message || "Internal server error");
+      }
     },
   },
   Mutation: {
@@ -41,14 +52,41 @@ const userResolver = {
         });
 
         await newUser.save();
-        // await context.login(newUser);
+        await context.login(newUser);
         return newUser;
       } catch (err) {
-        console.error("Error in signUp: ", err);
+        console.error("error in signUp: ", err);
         throw new Error(err.message || "Internal server error");
       }
     },
+    login: async (_, { input }, context) => {
+      try {
+        const { username, password } = input;
+        const { user } = await context.authenticate("graphql-local", input);
+        await context.login(user);
+        return user;
+      } catch (error) {
+        console.log("error in login: ", error);
+        throw new Error(error.message || "Internal server error");
+      }
+    },
+    logout: async (_, __, context) => {
+      try {
+        await context.logout();
+        req.session.detroy((err) => {
+          if (err) throw new Error(err.message);
+        });
+        res.clearCookie("connect.sid");
+
+        return { message: "Logout success!" };
+      } catch (error) {
+        console.log("error in logout: ", error);
+        throw new Error(error.message || "Internal server error");
+      }
+    },
   },
+
+  //TODO: Add User related to Transaction
 };
 
 export default userResolver;
