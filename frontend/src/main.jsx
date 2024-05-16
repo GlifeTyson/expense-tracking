@@ -13,7 +13,10 @@ import {
 
 const client = new ApolloClient({
   // if deploy , change to uri
-  uri: "http://localhost:4000/graphql", // url of graphql server
+  uri:
+    import.meta.env.VITE_NODE_ENV === "development"
+      ? "http://localhost:4000/graphql"
+      : "/graphql", // the URL of our GraphQL server.
   cache: new InMemoryCache(), // for in-memory caching
   credentials: "include", // for cookies sending per request
 });
