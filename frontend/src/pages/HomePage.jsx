@@ -1,53 +1,114 @@
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-
+import { useMutation, useQuery } from "@apollo/client";
 import Cards from "../components/Cards";
 import TransactionForm from "../components/TransactionForm";
-
 import { MdLogout } from "react-icons/md";
-import { useMutation } from "@apollo/client";
 import { SIGN_OUT } from "../graphql/mutations/user.mutations";
 import toast from "react-hot-toast";
+import { GET_TRANSACTION_STATISTICS } from "../graphql/queries/transaction.queries";
+import { useEffect, useState } from "react";
+import { GET_AUTHENTICATED_USER } from "../graphql/queries/user.queries";
 ChartJS.register(ArcElement, Tooltip, Legend);
 
+// const chartData = {
+//   labels: ["Saving", "Expense", "Investment"],
+//   datasets: [
+//     {
+//       label: "%",
+//       data: [1400, 180, 300],
+//       backgroundColor: [
+//         "rgba(75, 192, 192)",
+//         "rgba(255, 99, 132)",
+//         "rgba(54, 162, 235)",
+//       ],
+//       borderColor: [
+//         "rgba(75, 192, 192)",
+//         "rgba(255, 99, 132)",
+//         "rgba(54, 162, 235, 1)",
+//       ],
+//       borderWidth: 1,
+//       borderRadius: 30,
+//       spacing: 10,
+//       cutout: 130,
+//     },
+//   ],
+// };
 const HomePage = () => {
-  const [logout, { loading }] = useMutation(SIGN_OUT, {
+  const { data, loading: loadingTransactions } = useQuery(
+    GET_TRANSACTION_STATISTICS
+  );
+
+  const { data: userData } = useQuery(GET_AUTHENTICATED_USER);
+
+  console.log("userData", userData);
+
+  const [logout, { loading, client }] = useMutation(SIGN_OUT, {
     refetchQueries: ["GetAuthenticatedUser"],
   });
-  const chartData = {
-    labels: ["Saving", "Expense", "Investment"],
+
+  const [chartData, setChartData] = useState({
+    labels: [],
     datasets: [
       {
-        label: "%",
-        data: [13, 8, 3],
-        backgroundColor: [
-          "rgba(75, 192, 192)",
-          "rgba(255, 99, 132)",
-          "rgba(54, 162, 235)",
-        ],
-        borderColor: [
-          "rgba(75, 192, 192)",
-          "rgba(255, 99, 132)",
-          "rgba(54, 162, 235, 1)",
-        ],
+        label: "$",
+        data: [],
+        backgroundColor: [],
+        borderColor: [],
         borderWidth: 1,
         borderRadius: 30,
         spacing: 10,
         cutout: 130,
       },
     ],
-  };
+  });
 
   const handleLogout = async () => {
     try {
       await logout();
+      client.resetStore();
       toast.success("You have successfully logged out");
     } catch (error) {
       toast.error(error.message);
     }
   };
 
-  // const loading = false;
+  useEffect(() => {
+    if (data?.categoryStatistics) {
+      const categories = data.categoryStatistics.map((stat) => stat.category);
+      const totalAmounts = data.categoryStatistics.map(
+        (stat) => stat.totalAmount
+      );
+
+      const backgroundColors = [];
+      const borderColors = [];
+
+      categories.forEach((category) => {
+        if (category === "saving") {
+          backgroundColors.push("rgba(75, 192, 192)");
+          borderColors.push("rgba(75, 192, 192)");
+        } else if (category === "expense") {
+          backgroundColors.push("rgba(255, 99, 132)");
+          borderColors.push("rgba(255, 99, 132)");
+        } else if (category === "investment") {
+          backgroundColors.push("rgba(54, 162, 235)");
+          borderColors.push("rgba(54, 162, 235)");
+        }
+      });
+
+      setChartData((prev) => ({
+        labels: categories,
+        datasets: [
+          {
+            ...prev.datasets[0],
+            data: totalAmounts,
+            backgroundColor: backgroundColors,
+            borderColor: borderColors,
+          },
+        ],
+      }));
+    }
+  }, [data]);
 
   return (
     <>
@@ -57,7 +118,7 @@ const HomePage = () => {
             Spend wisely, track wisely
           </p>
           <img
-            src={"https://tecdn.b-cdn.net/img/new/avatars/2.webp"}
+            src={userData?.authUser?.profilePicture}
             className="w-11 h-11 rounded-full border cursor-pointer"
             alt="Avatar"
           />
@@ -73,9 +134,11 @@ const HomePage = () => {
           )}
         </div>
         <div className="flex flex-wrap w-full justify-center items-center gap-6">
-          <div className="h-[330px] w-[330px] md:h-[360px] md:w-[360px]  ">
-            <Doughnut data={chartData} />
-          </div>
+          {data?.categoryStatistics.length > 0 && (
+            <div className="h-[330px] w-[330px] md:h-[360px] md:w-[360px]  ">
+              <Doughnut data={chartData} />
+            </div>
+          )}
 
           <TransactionForm />
         </div>
