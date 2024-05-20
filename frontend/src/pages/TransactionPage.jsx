@@ -1,65 +1,82 @@
 import { useEffect, useState } from "react";
-import TransactionFormSkeleton from "../skeleton/TransactionFormSkeleton";
 import { useParams } from "react-router-dom";
-import { useMutation, useQuery } from "@apollo/client";
-import {
-  GET_TRANSACTION,
-  GET_TRANSACTION_STATISTICS,
-} from "../graphql/queries/transaction.queries";
-import { UPDATE_TRANSACTION } from "../graphql/mutations/transaction.mutations";
+import { getTransactionQuery } from "../graphql/queries/transaction.queries";
 import toast from "react-hot-toast";
+import useSWR from "swr";
+import { fetcher } from "../services/fetcher";
 
 const TransactionPage = () => {
-  const { id } = useParams();
+  const { id: transactionId } = useParams();
 
-  const { loading, data } = useQuery(GET_TRANSACTION, {
-    variables: { transactionId: id },
-  });
-  const [formData, setFormData] = useState({
-    description: data?.transaction?.description || "",
-    paymentType: data?.transaction?.paymentType || "",
-    category: data?.transaction?.category || "",
-    amount: data?.transaction?.amount || "",
-    location: data?.transaction?.location || "",
-    date: data?.transaction?.date || "",
-  });
-  const [updateTransaction, { loading: loadingUpdate }] = useMutation(
-    UPDATE_TRANSACTION,
-    {
-      refetchQueries: ["GET_TRANSACTIONS", "GET_TRANSACTION_STATISTICS"],
-    }
+  // Sử dụng useSWR với query và biến
+  const { data: transactionData, error } = useSWR(
+    [getTransactionQuery, { transactionId }],
+    (query, variables) => fetcher(query, variables)
   );
+  if (transactionData) {
+    console.log("transactionData", transactionData.transaction);
+  }
+  const [formData, setFormData] = useState({
+    description: transactionData?.transaction.description || "",
+    paymentType: transactionData?.transaction?.paymentType || "",
+    category: transactionData?.transaction?.category || "",
+    amount: transactionData?.transaction?.amount || "",
+    location: transactionData?.transaction?.location || "",
+    date: transactionData?.transaction?.date || "",
+  });
   useEffect(() => {
-    if (data) {
+    if (transactionData) {
+      const dateParsing = new Date(transactionData.transaction.date)
+        .toISOString()
+        .substr(0, 10);
       setFormData({
-        description: data?.transaction?.description,
-        paymentType: data?.transaction?.paymentType,
-        category: data?.transaction?.category,
-        amount: data?.transaction?.amount,
-        location: data?.transaction?.location,
-        date: new Date(+data.transaction.date).toISOString().substr(0, 10),
+        description: transactionData?.transaction.description || "",
+        paymentType: transactionData?.transaction?.paymentType || "",
+        category: transactionData?.transaction?.category || "",
+        amount: transactionData?.transaction?.amount || "",
+        location: transactionData?.transaction?.location || "",
+        date: dateParsing || "",
       });
     }
-  }, [data]);
+  }, [transactionData]);
+
+  // const [updateTransaction, { loading: loadingUpdate }] = useMutation(
+  //   UPDATE_TRANSACTION,
+  //   {
+  //     refetchQueries: ["GET_TRANSACTIONS", "GET_TRANSACTION_STATISTICS"],
+  //   }
+  // );
+  // useEffect(() => {
+  //   if (data) {
+  //     setFormData({
+  //       description: data?.transaction?.description,
+  //       paymentType: data?.transaction?.paymentType,
+  //       category: data?.transaction?.category,
+  //       amount: data?.transaction?.amount,
+  //       location: data?.transaction?.location,
+  //       date: new Date(+data.transaction.date).toISOString().substr(0, 10),
+  //     });
+  //   }
+  // }, [data]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const amountParsed = parseFloat(formData.amount);
 
     try {
-      await updateTransaction({
-        variables: {
-          input: {
-            transactionId: id,
-            description: formData.description,
-            paymentType: formData.paymentType,
-            category: formData.category,
-            amount: amountParsed,
-            location: formData.location,
-            date: formData.date,
-          },
-        },
-      });
+      const res = await // await updateTransaction({
+      //   variables: {
+      //     input: {
+      //       transactionId: id,
+      //       description: formData.description,
+      //       paymentType: formData.paymentType,
+      //       category: formData.category,
+      //       amount: amountParsed,
+      //       location: formData.location,
+      //       date: formData.date,
+      //     },
+      //   },
+      // });
       toast.success("Transaction updated successfully");
     } catch (error) {
       toast.error(error.message);
@@ -150,7 +167,7 @@ const TransactionPage = () => {
                 id="category"
                 name="category"
                 onChange={handleInputChange}
-                defaultValue={formData.category}
+                // defaultValue={formData.category}
                 value={formData.category}
               >
                 <option value={"saving"}>Saving</option>
@@ -234,9 +251,10 @@ const TransactionPage = () => {
           className="text-white font-bold w-full rounded px-4 py-2 bg-gradient-to-br
           from-pink-500 to-pink-500 hover:from-pink-600 hover:to-pink-600"
           type="submit"
-          disabled={loadingUpdate}
+          // disabled={loadingUpdate}
         >
-          {loadingUpdate ? "Saving..." : "Save"}
+          {/* {loadingUpdate ? "Saving..." : "Save"} */}
+          Save
         </button>
       </form>
     </div>

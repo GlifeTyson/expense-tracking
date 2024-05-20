@@ -31,3 +31,13 @@ export const GET_USER_AND_TRANSACTIONS = gql`
     }
   }
 `;
+
+export const fetchMe = `
+  query FetchMe {
+    Me {
+      id
+      username
+      profilePicture
+    }
+  }
+`;

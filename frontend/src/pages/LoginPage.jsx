@@ -1,17 +1,16 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import InputField from "../components/InputField";
-import { useMutation } from "@apollo/client";
-import { LOG_IN } from "../graphql/mutations/user.mutations";
 import toast from "react-hot-toast";
+import Auth from "../utils/auth";
+import { login } from "../services/user";
+
 const LoginPage = () => {
   const [loginData, setLoginData] = useState({
     username: "",
     password: "",
   });
-  const [login, { loading }] = useMutation(LOG_IN, {
-    refetchQueries: ["GetAuthenticatedUser"],
-  });
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setLoginData((prevData) => ({
@@ -24,9 +23,26 @@ const LoginPage = () => {
     e.preventDefault();
     if (!loginData.username || !loginData.password)
       return toast.error("Please fill in all fields");
+
     try {
-      await login({ variables: { input: loginData } });
-      toast.success("Logged in successfully");
+      const res = await login({
+        username: loginData.username,
+        password: loginData.password,
+      });
+      console.log("res", res);
+      const { success, token } = res.data.data.login;
+      if (success) {
+        Auth.login(token);
+        if (Auth.check()) {
+          setTimeout((_) => {
+            location.href = "/";
+          }, 100);
+        } else {
+          toast.error("An error occurred during execution");
+        }
+      } else {
+        toast.error(res.data.data.login.message);
+      }
     } catch (error) {
       console.error("Error logging in:", error);
       toast.error(error.message);
@@ -67,9 +83,10 @@ const LoginPage = () => {
                   className="w-full bg-black text-white p-2 rounded-md hover:bg-gray-800 focus:outline-none focus:bg-black  focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors duration-300
 										disabled:opacity-50 disabled:cursor-not-allowed
 									"
-                  disabled={loading}
+                  // disabled={loading}
                 >
-                  {loading ? "Loading..." : "Login"}
+                  Login
+                  {/* {loading ? "Loading..." : "Login"} */}
                 </button>
               </div>
             </form>

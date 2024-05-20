@@ -17,18 +17,21 @@ const categoryColorMap = {
   // Add more categories and corresponding color classes as needed
 };
 
-const Card = ({ transaction }) => {
+const Card = ({ transaction, mutate }) => {
   const [deleteTransaction, { loading }] = useMutation(DELETE_TRANSACTION, {
     refetchQueries: ["GetTransactions", "GetTransactionStatistics"],
   });
   let { category, amount, location, date, paymentType, description } =
     transaction;
   const cardClass = categoryColorMap[category];
+
   // Capitalize the first letter of the description
   description = description[0]?.toUpperCase() + description.slice(1);
   category = category[0]?.toUpperCase() + category.slice(1);
   paymentType = paymentType[0]?.toUpperCase() + paymentType.slice(1);
-  const formattedDate = formatDate(date);
+  // const formattedDate = formatDate(date);
+
+  const dateFormatted = date.split("T")[0];
 
   const handleDelete = async () => {
     try {
@@ -52,7 +55,7 @@ const Card = ({ transaction }) => {
             {loading && (
               <div className="w-6 h-6 border-t-2 border-b-2 rounded-full animate-spin"></div>
             )}
-            <Link to={`/transaction/${transaction._id}`}>
+            <Link to={`/transaction/${transaction.id}`}>
               <HiPencilAlt className="cursor-pointer" size={20} />
             </Link>
           </div>
@@ -74,7 +77,7 @@ const Card = ({ transaction }) => {
           Location: {location}
         </p>
         <div className="flex justify-between items-center">
-          <p className="text-xs text-black font-bold">{formattedDate}</p>
+          <p className="text-xs text-black font-bold">{dateFormatted}</p>
           <img
             src={"https://tecdn.b-cdn.net/img/new/avatars/2.webp"}
             className="h-8 w-8 border rounded-full"

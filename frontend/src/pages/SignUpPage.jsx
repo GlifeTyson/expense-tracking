@@ -2,9 +2,8 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import RadioButton from "../components/RadioButton";
 import InputField from "../components/InputField";
-import { useMutation } from "@apollo/client";
-import { SIGN_UP } from "../graphql/mutations/user.mutations";
 import toast from "react-hot-toast";
+import { signup } from "../services/user";
 
 const SignUpPage = () => {
   const [signUpData, setSignUpData] = useState({
@@ -13,19 +12,27 @@ const SignUpPage = () => {
     password: "",
     gender: "",
   });
-
-  const [signup, { loading, error }] = useMutation(SIGN_UP, {
-    refetchQueries: ["GetAuthenticatedUser"],
-  });
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      await signup({
-        variables: {
-          input: signUpData,
-        },
+      const signUpEmail = signUpData.username + "@gmail.com";
+      const res = await signup({
+        fullName: signUpData.name,
+        username: signUpData.username,
+        password: signUpData.password,
+        gender: signUpData.gender,
+        email: signUpEmail,
       });
-      toast.success("Account created successfully");
+      console.log("res.data.data", res.data.data);
+      const { success, message } = res.data.data.createUser;
+      if (success) {
+        setTimeout((_) => {
+          location.href = "/login";
+        }, 100);
+        toast.success("Account created successfully");
+      } else {
+        toast.error(message);
+      }
     } catch (error) {
       console.log(error);
       toast.error(error.message);
@@ -46,11 +53,6 @@ const SignUpPage = () => {
       }));
     }
   };
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   console.log(signUpData);
-  // };
 
   return (
     <div className="h-screen flex justify-center items-center">
@@ -109,14 +111,15 @@ const SignUpPage = () => {
               <div>
                 <button
                   type="submit"
-                  disabled={loading}
+                  // disabled={loading}
                   className="w-full bg-black text-white p-2 rounded-md hover:bg-gray-800 focus:outline-none focus:bg-black  focus:ring-2 focus:ring-offset-2 focus:ring-gray-900 transition-colors duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? "Loading..." : "Sign Up"}
+                  Sign Up
+                  {/* {loading ? "Loading..." : "Sign Up"} */}
                 </button>
-                {error && (
+                {/* {error && (
                   <p className="text-red-500 text-center">{error.message}</p>
-                )}
+                )} */}
               </div>
             </form>
             <div className="mt-4 text-sm text-gray-600 text-center">

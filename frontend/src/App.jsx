@@ -5,35 +5,44 @@ import SignUpPage from "./pages/SignUpPage";
 import TransactionPage from "./pages/TransactionPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import Header from "./components/ui/Header";
-import { useQuery } from "@apollo/client";
 import { Toaster } from "react-hot-toast";
-import { GET_AUTHENTICATED_USER } from "./graphql/queries/user.queries";
+import { useContext } from "react";
+import { UserContext } from "./contexts/UserProvider";
 function App() {
-  const { loading, data } = useQuery(GET_AUTHENTICATED_USER);
-
-  if (loading) return null;
+  // const authUser = true;
+  // return (
+  //   <>
+  //     {authUser && <Header />}
+  //     <Routes>
+  //       <Route path="/" element={<HomePage />} />
+  //       <Route path="/login" element={<LoginPage />} />
+  //       <Route path="/signup" element={<SignUpPage />} />
+  //       <Route path="/transaction/:id" element={<TransactionPage />} />
+  //       <Route path="*" element={<NotFound />} />
+  //     </Routes>
+  //   </>
+  // );
+  const { me } = useContext(UserContext);
 
   return (
     <>
-      {data?.authUser && <Header />}
+      {me && <Header />}
       <Routes>
         <Route
           path="/"
-          element={data?.authUser ? <HomePage /> : <Navigate to={"/login"} />}
+          element={me ? <HomePage /> : <Navigate to={"/login"} />}
         />
         <Route
           path="/login"
-          element={!data?.authUser ? <LoginPage /> : <Navigate to={"/"} />}
+          element={!me ? <LoginPage /> : <Navigate to={"/"} />}
         />
         <Route
           path="/signup"
-          element={!data?.authUser ? <SignUpPage /> : <Navigate to={"/"} />}
+          element={!me ? <SignUpPage /> : <Navigate to={"/"} />}
         />
         <Route
           path="/transaction/:id"
-          element={
-            data?.authUser ? <TransactionPage /> : <Navigate to={"/login"} />
-          }
+          element={me ? <TransactionPage /> : <Navigate to={"/login"} />}
         />
         <Route path="*" element={<NotFoundPage />} />
       </Routes>

@@ -1,52 +1,24 @@
 import { Doughnut } from "react-chartjs-2";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-import { useMutation, useQuery } from "@apollo/client";
 import Cards from "../components/Cards";
 import TransactionForm from "../components/TransactionForm";
 import { MdLogout } from "react-icons/md";
-import { SIGN_OUT } from "../graphql/mutations/user.mutations";
 import toast from "react-hot-toast";
-import { GET_TRANSACTION_STATISTICS } from "../graphql/queries/transaction.queries";
-import { useEffect, useState } from "react";
-import { GET_AUTHENTICATED_USER } from "../graphql/queries/user.queries";
+import {
+  getTransactions,
+  getTransactionStatistics,
+} from "../graphql/queries/transaction.queries";
+import { useContext, useEffect, useState } from "react";
+import Auth from "../utils/auth.js";
+import useSWR from "swr";
+import { UserContext } from "../contexts/UserProvider.jsx";
+import { fetcher } from "../services/fetcher.js";
+
 ChartJS.register(ArcElement, Tooltip, Legend);
 
-// const chartData = {
-//   labels: ["Saving", "Expense", "Investment"],
-//   datasets: [
-//     {
-//       label: "%",
-//       data: [1400, 180, 300],
-//       backgroundColor: [
-//         "rgba(75, 192, 192)",
-//         "rgba(255, 99, 132)",
-//         "rgba(54, 162, 235)",
-//       ],
-//       borderColor: [
-//         "rgba(75, 192, 192)",
-//         "rgba(255, 99, 132)",
-//         "rgba(54, 162, 235, 1)",
-//       ],
-//       borderWidth: 1,
-//       borderRadius: 30,
-//       spacing: 10,
-//       cutout: 130,
-//     },
-//   ],
-// };
 const HomePage = () => {
-  const { data, loading: loadingTransactions } = useQuery(
-    GET_TRANSACTION_STATISTICS
-  );
-
-  const { data: userData } = useQuery(GET_AUTHENTICATED_USER);
-
-  console.log("userData", userData);
-
-  const [logout, { loading, client }] = useMutation(SIGN_OUT, {
-    refetchQueries: ["GetAuthenticatedUser"],
-  });
-
+  const { me } = useContext(UserContext);
+  const [transactions, setTransactions] = useState([]);
   const [chartData, setChartData] = useState({
     labels: [],
     datasets: [
@@ -62,53 +34,87 @@ const HomePage = () => {
       },
     ],
   });
+  //TODO: fetch transaction base on user logged in
+  const {
+    data: transactionData,
+    error: transactionError,
+    isLoading: transactionLoading,
+    isValidating: transactionValidating,
+    mutate: mutateTransaction,
+  } = useSWR([getTransactions, {}], fetcher);
 
-  const handleLogout = async () => {
+  //TODO: fetch statistics
+  const {
+    data: statisticsData,
+    error: errorStatistics,
+    isLoading: loadingStatistics,
+    isValidating: statisticsValidating,
+    mutate: mutateStatistics,
+  } = useSWR([getTransactionStatistics, {}], fetcher);
+
+  //Setting background color and border color base on category
+  //then set ChartData to loading data on UI
+  useEffect(() => {
+    // if (transactionData) {
+    //   console.log("transactionData", transactionData);
+    // }
+    if (transactionData) {
+      setTransactions(transactionData.myTransactions);
+      if (statisticsData) {
+        const categories = statisticsData.categoryStatistics.map(
+          (stat) => stat.category
+        );
+        const totalAmounts = statisticsData.categoryStatistics.map(
+          (stat) => stat.totalAmount
+        );
+        // console.log("categories", categories);
+        // console.log("totalAmounts", totalAmounts);
+        const backgroundColors = [];
+        const borderColors = [];
+        categories.forEach((category) => {
+          if (category === "expense") {
+            backgroundColors.push("rgba(255, 99, 132)");
+            borderColors.push("rgba(255, 99, 132)");
+          } else if (category === "saving") {
+            backgroundColors.push("rgba(75, 192, 192)");
+            borderColors.push("rgba(75, 192, 192)");
+          } else if (category === "invesment") {
+            backgroundColors.push("rgba(54, 162, 235)");
+            borderColors.push("rgba(54, 162, 235)");
+          }
+        });
+        setChartData({
+          labels: categories,
+          datasets: [
+            {
+              label: "$",
+              data: totalAmounts,
+              backgroundColor: backgroundColors,
+              borderColor: borderColors,
+              borderWidth: 1,
+              borderRadius: 30,
+              spacing: 10,
+              cutout: 130,
+            },
+          ],
+        });
+      }
+    }
+  }, [transactionData, statisticsData]);
+
+  const handleLogout = () => {
     try {
-      await logout();
-      client.resetStore();
+      Auth.logout();
+      if (Auth.check()) {
+        setTimeout((_) => {
+          location.href = "/login";
+        }, 250);
+      }
       toast.success("You have successfully logged out");
     } catch (error) {
       toast.error(error.message);
     }
   };
-
-  useEffect(() => {
-    if (data?.categoryStatistics) {
-      const categories = data.categoryStatistics.map((stat) => stat.category);
-      const totalAmounts = data.categoryStatistics.map(
-        (stat) => stat.totalAmount
-      );
-
-      const backgroundColors = [];
-      const borderColors = [];
-
-      categories.forEach((category) => {
-        if (category === "saving") {
-          backgroundColors.push("rgba(75, 192, 192)");
-          borderColors.push("rgba(75, 192, 192)");
-        } else if (category === "expense") {
-          backgroundColors.push("rgba(255, 99, 132)");
-          borderColors.push("rgba(255, 99, 132)");
-        } else if (category === "investment") {
-          backgroundColors.push("rgba(54, 162, 235)");
-          borderColors.push("rgba(54, 162, 235)");
-        }
-      });
-
-      setChartData((prev) => ({
-        labels: categories,
-        datasets: [
-          {
-            ...prev.datasets[0],
-            data: totalAmounts,
-            backgroundColor: backgroundColors,
-            borderColor: borderColors,
-          },
-        ],
-      }));
-    }
-  }, [data]);
 
   return (
     <>
@@ -118,31 +124,42 @@ const HomePage = () => {
             Spend wisely, track wisely
           </p>
           <img
-            src={userData?.authUser?.profilePicture}
+            src={me?.profilePicture}
             className="w-11 h-11 rounded-full border cursor-pointer"
             alt="Avatar"
           />
-          {!loading && (
+          {!transactionLoading && (
             <MdLogout
               className="mx-2 w-5 h-5 cursor-pointer"
               onClick={handleLogout}
             />
           )}
-          {/* loading spinner */}
-          {loading && (
+          {transactionLoading && (
             <div className="w-6 h-6 border-t-2 border-b-2 mx-2 rounded-full animate-spin"></div>
           )}
+
+          {/* loading spinner */}
+          {/* {loading && (
+            <div className="w-6 h-6 border-t-2 border-b-2 mx-2 rounded-full animate-spin"></div>
+          )} */}
         </div>
         <div className="flex flex-wrap w-full justify-center items-center gap-6">
-          {data?.categoryStatistics.length > 0 && (
+          {statisticsData?.categoryStatistics.length > 0 && (
             <div className="h-[330px] w-[330px] md:h-[360px] md:w-[360px]  ">
               <Doughnut data={chartData} />
             </div>
           )}
 
-          <TransactionForm />
+          <TransactionForm
+            mutate={mutateTransaction}
+            mutateStatistics={mutateStatistics}
+          />
         </div>
-        <Cards />
+        <Cards
+          transactions={transactions}
+          isLoading={transactionLoading}
+          mutate={mutateTransaction}
+        />
       </div>
     </>
   );

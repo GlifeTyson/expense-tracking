@@ -27,3 +27,18 @@ export const LOG_IN = gql`
     }
   }
 `;
+export const loginQuery = `
+mutation Login($username: String!, $password: String!) {
+    login(username: $username, password: $password) {
+        message
+        success
+        token
+    }
+}
+`;
+export const signupQuery = `mutation CreateUser($input: NewUserInput!) {
+  createUser(input: $input) {
+    message
+    success
+  }
+}`;
