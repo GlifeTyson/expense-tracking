@@ -55,9 +55,6 @@ const HomePage = () => {
   //Setting background color and border color base on category
   //then set ChartData to loading data on UI
   useEffect(() => {
-    // if (transactionData) {
-    //   console.log("transactionData", transactionData);
-    // }
     if (transactionData) {
       setTransactions(transactionData.myTransactions);
       if (statisticsData) {
@@ -67,8 +64,6 @@ const HomePage = () => {
         const totalAmounts = statisticsData.categoryStatistics.map(
           (stat) => stat.totalAmount
         );
-        // console.log("categories", categories);
-        // console.log("totalAmounts", totalAmounts);
         const backgroundColors = [];
         const borderColors = [];
         categories.forEach((category) => {
@@ -159,6 +154,7 @@ const HomePage = () => {
           transactions={transactions}
           isLoading={transactionLoading}
           mutate={mutateTransaction}
+          mutateStatistics={mutateStatistics}
         />
       </div>
     </>

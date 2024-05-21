@@ -180,10 +180,8 @@ const TransactionForm = ({ mutate, mutateStatistics }) => {
           from-pink-500 to-pink-500 hover:from-pink-600 hover:to-pink-600
 						disabled:opacity-70 disabled:cursor-not-allowed"
         type="submit"
-        // disabled={loading}
       >
         Add transaction
-        {/* {loading ? "Loading..." : "Add transaction"} */}
       </button>
     </form>
   );

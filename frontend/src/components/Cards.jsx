@@ -6,7 +6,7 @@ import {
   GET_USER_AND_TRANSACTIONS,
 } from "../graphql/queries/user.queries";
 
-const Cards = ({ transactions, isLoading, mutate }) => {
+const Cards = ({ transactions, isLoading, mutate, mutateStatistics }) => {
   return (
     <div className="w-full px-10 min-h-[40vh]">
       <p className="text-5xl font-bold text-center my-10">History</p>
@@ -17,6 +17,7 @@ const Cards = ({ transactions, isLoading, mutate }) => {
               key={transaction.id}
               transaction={transaction}
               mutate={mutate}
+              mutateStatistics={mutateStatistics}
             />
           ))}
       </div>

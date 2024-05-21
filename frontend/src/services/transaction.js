@@ -33,11 +33,12 @@ export async function createTransaction({ input }) {
     throw error;
   }
 }
-export function updateTransaction({ input }) {
+export function updateTransaction({ id, input }) {
   try {
     const res = createAxios().post("http://localhost:3001/graphql", {
       query: updateTransactionQuery,
       variables: {
+        updateTransactionId: id,
         input: input,
       },
     });
@@ -48,12 +49,12 @@ export function updateTransaction({ input }) {
   }
 }
 
-export function deleteTransaction({ transactionId }) {
+export function deleteTransaction(transactionId) {
   try {
     const res = createAxios().post("http://localhost:3001/graphql", {
       query: deleteTransactionQuery,
       variables: {
-        transactionId: transactionId,
+        deleteTransactionId: transactionId,
       },
     });
     return res;

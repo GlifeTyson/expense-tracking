@@ -5,56 +5,82 @@ import { FaSackDollar } from "react-icons/fa6";
 import { FaTrash } from "react-icons/fa";
 import { HiPencilAlt } from "react-icons/hi";
 import { Link } from "react-router-dom";
-import { formatDate } from "../utils/formatTimestamp";
-import { useMutation } from "@apollo/client";
-import { DELETE_TRANSACTION } from "../graphql/mutations/transaction.mutations";
 import toast from "react-hot-toast";
-
+import { deleteTransaction } from "../services/transaction";
+import { useState } from "react";
+import { Modal } from "antd";
+// Add more categories and corresponding color classes as needed
 const categoryColorMap = {
   saving: "from-green-700 to-green-400",
   expense: "from-pink-800 to-pink-600",
   investment: "from-blue-700 to-blue-400",
-  // Add more categories and corresponding color classes as needed
 };
 
-const Card = ({ transaction, mutate }) => {
-  const [deleteTransaction, { loading }] = useMutation(DELETE_TRANSACTION, {
-    refetchQueries: ["GetTransactions", "GetTransactionStatistics"],
-  });
+const Card = ({ transaction, mutate, mutateStatistics }) => {
+  const [showModal, setShowModal] = useState(false);
+
   let { category, amount, location, date, paymentType, description } =
     transaction;
+
   const cardClass = categoryColorMap[category];
 
   // Capitalize the first letter of the description
   description = description[0]?.toUpperCase() + description.slice(1);
   category = category[0]?.toUpperCase() + category.slice(1);
   paymentType = paymentType[0]?.toUpperCase() + paymentType.slice(1);
-  // const formattedDate = formatDate(date);
 
   const dateFormatted = date.split("T")[0];
 
-  const handleDelete = async () => {
+  const handleDelete = async (transactionId) => {
     try {
-      await deleteTransaction({
-        variables: { transactionId: transaction._id },
-      });
-      toast.success("Transaction deleted successfully");
+      console.log("transactionId", transactionId);
+      const res = await deleteTransaction(transactionId);
+      const { success, message } = res.data.data.deleteTransaction;
+      if (success) {
+        mutate();
+        mutateStatistics();
+        toast.success("Transaction deleted successfully");
+      } else {
+        toast.error(message);
+      }
     } catch (error) {
       toast.error(error.message);
     }
   };
+  function handleShowModal() {
+    setShowModal(true);
+  }
+  function handleCloseModal() {
+    setShowModal(false);
+  }
+
+  async function handleConfirmDelete(transactionId) {
+    console.log(transactionId);
+    try {
+      await handleDelete(transactionId);
+      setShowModal(false);
+    } catch (error) {
+      throw error;
+    }
+  }
+
   return (
     <div className={`rounded-md p-4 bg-gradient-to-br ${cardClass}`}>
       <div className="flex flex-col gap-3">
         <div className="flex flex-row items-center justify-between">
           <h2 className="text-lg font-bold text-white">{category}</h2>
           <div className="flex items-center gap-2">
-            {!loading && (
-              <FaTrash className={"cursor-pointer"} onClick={handleDelete} />
-            )}
-            {loading && (
-              <div className="w-6 h-6 border-t-2 border-b-2 rounded-full animate-spin"></div>
-            )}
+            {/* {!loading && ( */}
+            <FaTrash className={"cursor-pointer"} onClick={handleShowModal} />
+
+            <Modal
+              title="Confirm Delete"
+              open={showModal}
+              onOk={() => handleConfirmDelete(transaction.id)}
+              onCancel={handleCloseModal}
+            >
+              <p>Are you sure you want to delete this transaction?</p>
+            </Modal>
             <Link to={`/transaction/${transaction.id}`}>
               <HiPencilAlt className="cursor-pointer" size={20} />
             </Link>

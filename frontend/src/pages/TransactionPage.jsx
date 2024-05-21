@@ -4,18 +4,19 @@ import { getTransactionQuery } from "../graphql/queries/transaction.queries";
 import toast from "react-hot-toast";
 import useSWR from "swr";
 import { fetcher } from "../services/fetcher";
+import { updateTransaction } from "../services/transaction";
 
 const TransactionPage = () => {
   const { id: transactionId } = useParams();
 
-  // Sử dụng useSWR với query và biến
-  const { data: transactionData, error } = useSWR(
-    [getTransactionQuery, { transactionId }],
-    (query, variables) => fetcher(query, variables)
+  const {
+    data: transactionData,
+    error,
+    isLoading,
+  } = useSWR([getTransactionQuery, { transactionId }], (query, variables) =>
+    fetcher(query, variables)
   );
-  if (transactionData) {
-    console.log("transactionData", transactionData.transaction);
-  }
+
   const [formData, setFormData] = useState({
     description: transactionData?.transaction.description || "",
     paymentType: transactionData?.transaction?.paymentType || "",
@@ -24,6 +25,7 @@ const TransactionPage = () => {
     location: transactionData?.transaction?.location || "",
     date: transactionData?.transaction?.date || "",
   });
+
   useEffect(() => {
     if (transactionData) {
       const dateParsing = new Date(transactionData.transaction.date)
@@ -40,44 +42,28 @@ const TransactionPage = () => {
     }
   }, [transactionData]);
 
-  // const [updateTransaction, { loading: loadingUpdate }] = useMutation(
-  //   UPDATE_TRANSACTION,
-  //   {
-  //     refetchQueries: ["GET_TRANSACTIONS", "GET_TRANSACTION_STATISTICS"],
-  //   }
-  // );
-  // useEffect(() => {
-  //   if (data) {
-  //     setFormData({
-  //       description: data?.transaction?.description,
-  //       paymentType: data?.transaction?.paymentType,
-  //       category: data?.transaction?.category,
-  //       amount: data?.transaction?.amount,
-  //       location: data?.transaction?.location,
-  //       date: new Date(+data.transaction.date).toISOString().substr(0, 10),
-  //     });
-  //   }
-  // }, [data]);
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     const amountParsed = parseFloat(formData.amount);
 
     try {
-      const res = await // await updateTransaction({
-      //   variables: {
-      //     input: {
-      //       transactionId: id,
-      //       description: formData.description,
-      //       paymentType: formData.paymentType,
-      //       category: formData.category,
-      //       amount: amountParsed,
-      //       location: formData.location,
-      //       date: formData.date,
-      //     },
-      //   },
-      // });
-      toast.success("Transaction updated successfully");
+      const res = await updateTransaction({
+        id: transactionId,
+        input: {
+          description: formData.description,
+          paymentType: formData.paymentType,
+          category: formData.category,
+          amount: amountParsed,
+          location: formData.location,
+          date: new Date(formData.date).toISOString(),
+        },
+      });
+      const { success, message } = res.data.data.updateTransaction;
+      if (success) {
+        toast.success("Transaction updated successfully");
+      } else {
+        toast.error(message);
+      }
     } catch (error) {
       toast.error(error.message);
     }
@@ -251,10 +237,9 @@ const TransactionPage = () => {
           className="text-white font-bold w-full rounded px-4 py-2 bg-gradient-to-br
           from-pink-500 to-pink-500 hover:from-pink-600 hover:to-pink-600"
           type="submit"
-          // disabled={loadingUpdate}
+          disabled={isLoading}
         >
-          {/* {loadingUpdate ? "Saving..." : "Save"} */}
-          Save
+          {isLoading ? "Saving..." : "Save"}
         </button>
       </form>
     </div>

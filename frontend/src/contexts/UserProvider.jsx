@@ -26,25 +26,6 @@ function UserProvider({ children }) {
     }
   }, [data, error, isValidating]);
 
-  //   useEffect(() => {
-  //     if (error) {
-  //       setMe(null);
-  //     }
-  //   }, [error]);
-
-  //   useEffect(() => {
-  //     if (!isValidating && viewport) {
-  //       const me = data && data.me;
-  //       if (me) {
-  //         me.isRole = function (role) {
-  //           return true;
-  //         };
-  //       }
-  //       setMe(me);
-  //       setLoadingUser(false);
-  //     }
-  //   }, [isValidating, viewport]);
-
   function handleLogout() {
     const response = Auth.logout();
     if (response) {

@@ -54,18 +54,18 @@ mutation Mutation($input: NewTransactionInput!) {
 }
 `;
 export const updateTransactionQuery = `
-mutation Mutation($input: UpdateTransactionInput!) {
-  updateTransaction(input: $input) {
+mutation UpdateTransaction($updateTransactionId: ID!, $input: UpdateTransactionInput!) {
+  updateTransaction(id: $updateTransactionId, input: $input) {
     message
     success
   }
 }
 `;
 export const deleteTransactionQuery = `
-mutation Mutation($transactionId: ID!) {
-  deleteTransaction(transactionId: $transactionId) {
-    message
+mutation Mutation($deleteTransactionId: ID!) {
+  deleteTransaction(id: $deleteTransactionId) {
     success
+    message
   }
 }
 `;
