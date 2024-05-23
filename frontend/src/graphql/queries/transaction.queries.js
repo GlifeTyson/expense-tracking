@@ -39,17 +39,18 @@ export const GET_TRANSACTION_STATISTICS = gql`
 `;
 
 export const getTransactions = `
-  query GetTransactions {
-    myTransactions{
-      id
-      amount
-      category
-      description
-      date
-      location
-      paymentType
-    }
+query Query($filter: FilterTransaction, $first: Int, $orderBy: TransactionOrder, $skip: Int) {
+  myTransactions(filter: $filter, first: $first, orderBy: $orderBy, skip: $skip) {
+    id
+    userId
+    amount
+    description
+    category
+    paymentType
+    date
+    location
   }
+}
 `;
 
 export const getTransactionStatistics = `

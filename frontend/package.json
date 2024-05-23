@@ -10,6 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@ant-design/icons": "^5.3.7",
     "@apollo/client": "^3.10.3",
     "@tailwindcss/aspect-ratio": "^0.4.2",
     "antd": "^5.17.3",

@@ -9,6 +9,7 @@ import toast from "react-hot-toast";
 import { deleteTransaction } from "../services/transaction";
 import { useState } from "react";
 import { Modal } from "antd";
+
 // Add more categories and corresponding color classes as needed
 const categoryColorMap = {
   saving: "from-green-700 to-green-400",
@@ -55,7 +56,6 @@ const Card = ({ transaction, mutate, mutateStatistics }) => {
   }
 
   async function handleConfirmDelete(transactionId) {
-    console.log(transactionId);
     try {
       await handleDelete(transactionId);
       setShowModal(false);
@@ -65,7 +65,9 @@ const Card = ({ transaction, mutate, mutateStatistics }) => {
   }
 
   return (
-    <div className={`rounded-md p-4 bg-gradient-to-br ${cardClass}`}>
+    <div
+      className={`rounded-md w-[300px] flex-shrink-0 p-4 bg-gradient-to-br ${cardClass}`}
+    >
       <div className="flex flex-col gap-3">
         <div className="flex flex-row items-center justify-between">
           <h2 className="text-lg font-bold text-white">{category}</h2>
