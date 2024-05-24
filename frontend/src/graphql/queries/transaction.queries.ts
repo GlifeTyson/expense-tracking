@@ -38,7 +38,7 @@ export const GET_TRANSACTION_STATISTICS = gql`
   }
 `;
 
-export const getTransactions = `
+export const getTransactions: string = `
 query Query($filter: FilterTransaction, $first: Int, $orderBy: TransactionOrder, $skip: Int) {
   myTransactions(filter: $filter, first: $first, orderBy: $orderBy, skip: $skip) {
     id
@@ -53,7 +53,7 @@ query Query($filter: FilterTransaction, $first: Int, $orderBy: TransactionOrder,
 }
 `;
 
-export const getTransactionStatistics = `
+export const getTransactionStatistics: string = `
   query CategoryStatistics {
     categoryStatistics {
       category
@@ -61,7 +61,7 @@ export const getTransactionStatistics = `
     }
   }
 `;
-export const getTransactionQuery = `
+export const getTransactionQuery: string = `
 query Query($transactionId: ID!) {
   transaction(id: $transactionId) {
     id

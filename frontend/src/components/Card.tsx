@@ -9,7 +9,7 @@ import toast from "react-hot-toast";
 import { deleteTransaction } from "../services/transaction";
 import { useState } from "react";
 import { Modal } from "antd";
-
+import React from "react";
 // Add more categories and corresponding color classes as needed
 const categoryColorMap = {
   saving: "from-green-700 to-green-400",

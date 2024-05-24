@@ -1,11 +1,15 @@
-export const fetcher = async ([query, variables]) => {
+export const fetcher = async ([query, variables]: [
+  string,
+  any
+]): Promise<any> => {
   try {
+    const headers = new Headers({
+      "Content-Type": "application/json",
+      "x-token": localStorage.getItem("x-token") || "",
+    });
     const response = await fetch("http://localhost:3001/graphql", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-token": localStorage.getItem("x-token"),
-      },
+      headers: headers,
       body: JSON.stringify({ query, variables }),
     });
 

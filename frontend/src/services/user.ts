@@ -1,7 +1,13 @@
 import { loginQuery, signupQuery } from "../graphql/mutations/user.mutations";
 import { createAxios } from "../lib/axios";
 
-export async function login({ username, password }) {
+export async function login({
+  username,
+  password,
+}: {
+  username: string;
+  password: string;
+}) {
   try {
     const res = await createAxios().post("http://localhost:3001/graphql", {
       query: loginQuery,
@@ -17,7 +23,19 @@ export async function login({ username, password }) {
   }
 }
 
-export async function signup({ fullName, username, password, gender, email }) {
+export async function signup({
+  fullName,
+  username,
+  password,
+  gender,
+  email,
+}: {
+  fullName: string;
+  username: string;
+  password: string;
+  gender: string;
+  email: string;
+}) {
   try {
     const res = await createAxios().post("http://localhost:3001/graphql", {
       query: signupQuery,

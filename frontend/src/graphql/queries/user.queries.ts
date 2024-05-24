@@ -32,7 +32,7 @@ export const GET_USER_AND_TRANSACTIONS = gql`
   }
 `;
 
-export const fetchMe = `
+export const fetchMe: string = `
   query FetchMe {
     Me {
       id

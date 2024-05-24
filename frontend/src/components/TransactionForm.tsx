@@ -1,19 +1,26 @@
 import toast from "react-hot-toast";
-import { createTransaction } from "../services/transaction";
-
-const TransactionForm = ({ mutate, mutateStatistics }) => {
-  const handleSubmit = async (e) => {
+import { createTransaction } from "../services/transaction.ts";
+import React from "react";
+import { KeyedMutator } from "swr";
+interface Props {
+  mutate: KeyedMutator<any>;
+  mutateStatistics: KeyedMutator<any>;
+}
+const TransactionForm = ({ mutate, mutateStatistics }: Props) => {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
 
-    const form = e.target;
+    const form = e.target as HTMLFormElement;
     const formData = new FormData(form);
     const transactionData = {
-      description: formData.get("description"),
-      paymentType: formData.get("paymentType"),
-      category: formData.get("category"),
-      amount: parseFloat(formData.get("amount")),
-      location: formData.get("location"),
-      date: formData.get("date"),
+      description: formData.get("description") as string,
+      paymentType: formData.get("paymentType") as string,
+      category: formData.get("category") as string,
+      amount: parseFloat(formData.get("amount") as string) as number,
+      location: formData.get("location") as string,
+      date: formData.get("date") as string,
     };
     try {
       const res = await createTransaction({

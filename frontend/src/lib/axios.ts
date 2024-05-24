@@ -1,6 +1,6 @@
-import Auth from "../utils/auth.js";
-import axios from "axios";
-export function createAxios() {
+import Auth from "../utils/auth.ts";
+import axios, { AxiosInstance } from "axios";
+export function createAxios(): AxiosInstance {
   let instance = axios.create();
   Auth.initialize();
   instance.defaults.headers["x-token"] = Auth.state["x-token"];

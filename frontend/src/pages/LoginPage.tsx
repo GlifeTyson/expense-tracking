@@ -1,17 +1,19 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
-import InputField from "../components/InputField";
+import InputField from "../components/InputField.tsx";
 import toast from "react-hot-toast";
-import Auth from "../utils/auth";
-import { login } from "../services/user";
-
+import Auth from "../utils/auth.ts";
+import { login } from "../services/user.ts";
+import React from "react";
 const LoginPage = () => {
   const [loginData, setLoginData] = useState({
     username: "",
     password: "",
   });
 
-  const handleChange = (e) => {
+  const handleChange: React.ChangeEventHandler<HTMLInputElement> = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const { name, value } = e.target;
     setLoginData((prevData) => ({
       ...prevData,
@@ -19,7 +21,9 @@ const LoginPage = () => {
     }));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
     if (!loginData.username || !loginData.password)
       return toast.error("Please fill in all fields");
@@ -34,7 +38,7 @@ const LoginPage = () => {
       if (success) {
         Auth.login(token);
         if (Auth.check()) {
-          setTimeout((_) => {
+          setTimeout((_: any) => {
             location.href = "/";
           }, 100);
         } else {

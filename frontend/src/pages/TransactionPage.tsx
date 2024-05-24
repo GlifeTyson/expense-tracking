@@ -1,21 +1,20 @@
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
-import { getTransactionQuery } from "../graphql/queries/transaction.queries";
+import { getTransactionQuery } from "../graphql/queries/transaction.queries.ts";
 import toast from "react-hot-toast";
 import useSWR from "swr";
-import { fetcher } from "../services/fetcher";
-import { updateTransaction } from "../services/transaction";
+import { fetcher } from "../services/fetcher.ts";
+import { updateTransaction } from "../services/transaction.ts";
+import React from "react";
 
 const TransactionPage = () => {
-  const { id: transactionId } = useParams();
+  const { id: transactionId } = useParams<{ id: string }>();
 
   const {
     data: transactionData,
     error,
     isLoading,
-  } = useSWR([getTransactionQuery, { transactionId }], (query, variables) =>
-    fetcher(query, variables)
-  );
+  } = useSWR([getTransactionQuery, { transactionId }], fetcher);
 
   const [formData, setFormData] = useState({
     description: transactionData?.transaction.description || "",
@@ -42,13 +41,15 @@ const TransactionPage = () => {
     }
   }, [transactionData]);
 
-  const handleSubmit = async (e) => {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
     const amountParsed = parseFloat(formData.amount);
 
     try {
       const res = await updateTransaction({
-        id: transactionId,
+        id: transactionId as string,
         input: {
           description: formData.description,
           paymentType: formData.paymentType,
@@ -58,17 +59,21 @@ const TransactionPage = () => {
           date: new Date(formData.date).toISOString(),
         },
       });
-      const { success, message } = res.data.data.updateTransaction;
-      if (success) {
-        toast.success("Transaction updated successfully");
-      } else {
+      console.log("res.data.errors", res.data);
+      const { data, errors } = res.data;
+      if (errors) {
+        const { message } = errors[0];
         toast.error(message);
+      } else {
+        toast.success("Transaction updated successfully");
       }
     } catch (error) {
       toast.error(error.message);
     }
   };
-  const handleInputChange = (e) => {
+  const handleInputChange: React.ChangeEventHandler<
+    HTMLInputElement | HTMLSelectElement
+  > = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prevFormData) => ({
       ...prevFormData,

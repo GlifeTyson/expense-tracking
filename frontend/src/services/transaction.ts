@@ -2,10 +2,32 @@ import {
   createTransactionQuery,
   deleteTransactionQuery,
   updateTransactionQuery,
-} from "../graphql/mutations/transaction.mutations";
-import { getTransactionQuery } from "../graphql/queries/transaction.queries";
-import { createAxios } from "../lib/axios";
-export async function getTransaction({ transactionId }) {
+} from "../graphql/mutations/transaction.mutations.ts";
+import { getTransactionQuery } from "../graphql/queries/transaction.queries.ts";
+import { createAxios } from "../lib/axios.ts";
+
+interface createTransactionType {
+  description: string;
+  paymentType: string;
+  category: string;
+  amount: number;
+  location: string;
+  date: string;
+}
+
+interface updateTransactionType {
+  description: string;
+  paymentType: string;
+  category: string;
+  amount: number;
+  location: string;
+  date: string;
+}
+export async function getTransaction({
+  transactionId,
+}: {
+  transactionId: string;
+}) {
   try {
     const res = await createAxios().post("http://localhost:3001/graphql", {
       query: getTransactionQuery,
@@ -19,7 +41,11 @@ export async function getTransaction({ transactionId }) {
     throw error;
   }
 }
-export async function createTransaction({ input }) {
+export async function createTransaction({
+  input,
+}: {
+  input: createTransactionType;
+}) {
   try {
     const res = await createAxios().post("http://localhost:3001/graphql", {
       query: createTransactionQuery,
@@ -33,7 +59,13 @@ export async function createTransaction({ input }) {
     throw error;
   }
 }
-export function updateTransaction({ id, input }) {
+export function updateTransaction({
+  id,
+  input,
+}: {
+  id: string;
+  input: updateTransactionType;
+}) {
   try {
     const res = createAxios().post("http://localhost:3001/graphql", {
       query: updateTransactionQuery,
@@ -49,7 +81,7 @@ export function updateTransaction({ id, input }) {
   }
 }
 
-export function deleteTransaction(transactionId) {
+export function deleteTransaction(transactionId: string) {
   try {
     const res = createAxios().post("http://localhost:3001/graphql", {
       query: deleteTransactionQuery,

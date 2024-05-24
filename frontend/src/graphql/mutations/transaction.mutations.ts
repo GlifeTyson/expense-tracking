@@ -45,7 +45,7 @@ export const DELETE_TRANSACTION = gql`
   }
 `;
 
-export const createTransactionQuery = `
+export const createTransactionQuery: string = `
 mutation Mutation($input: NewTransactionInput!) {
   createTransaction(input: $input) {
     message
@@ -53,7 +53,7 @@ mutation Mutation($input: NewTransactionInput!) {
   }
 }
 `;
-export const updateTransactionQuery = `
+export const updateTransactionQuery: string = `
 mutation UpdateTransaction($updateTransactionId: ID!, $input: UpdateTransactionInput!) {
   updateTransaction(id: $updateTransactionId, input: $input) {
     message
@@ -61,7 +61,7 @@ mutation UpdateTransaction($updateTransactionId: ID!, $input: UpdateTransactionI
   }
 }
 `;
-export const deleteTransactionQuery = `
+export const deleteTransactionQuery: string = `
 mutation Mutation($deleteTransactionId: ID!) {
   deleteTransaction(id: $deleteTransactionId) {
     success

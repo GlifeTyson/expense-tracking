@@ -2,7 +2,7 @@
 const Utils = {
   months: ({ count }) => {
     const currentDate = new Date();
-    const months = [];
+    const months: string[] = [];
     for (let i = 0; i < count; i++) {
       const month = currentDate.getMonth() - i;
       const year = currentDate.getFullYear();

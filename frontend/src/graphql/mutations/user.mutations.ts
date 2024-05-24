@@ -27,7 +27,7 @@ export const LOG_IN = gql`
     }
   }
 `;
-export const loginQuery = `
+export const loginQuery: string = `
 mutation Login($username: String!, $password: String!) {
     login(username: $username, password: $password) {
         message
@@ -36,7 +36,7 @@ mutation Login($username: String!, $password: String!) {
     }
 }
 `;
-export const signupQuery = `mutation CreateUser($input: NewUserInput!) {
+export const signupQuery: string = `mutation CreateUser($input: NewUserInput!) {
   createUser(input: $input) {
     message
     success

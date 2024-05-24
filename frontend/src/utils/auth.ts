@@ -1,5 +1,5 @@
 import JsCookie from "js-cookie";
-import { domainOpts } from "../utils/cookies";
+import { domainOpts } from "./cookies.ts";
 
 export default {
   constructor() {
@@ -14,7 +14,7 @@ export default {
         localStorage.getItem("x-token") || JsCookie.get("x-token");
     }
   },
-  set(token) {
+  set(token: string) {
     if (typeof window !== "undefined") {
       JsCookie.set("x-token", token, { expires: 365 });
       localStorage.setItem("x-token", token);
@@ -22,7 +22,7 @@ export default {
     this.initialize();
     return true;
   },
-  setAsyncToken(token) {
+  setAsyncToken(token: string) {
     if (typeof window !== "undefined") {
       JsCookie.set("x-token", token, { expires: 365, ...domainOpts() });
 
@@ -43,7 +43,7 @@ export default {
       }
     }
   },
-  login(token) {
+  login(token: string) {
     return this.set(token);
   },
   logout() {

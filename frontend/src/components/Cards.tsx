@@ -3,15 +3,54 @@ import { Button } from "antd";
 import { BarChartOutlined } from "@ant-design/icons";
 import { useEffect, useState } from "react";
 import Chart from "chart.js/auto";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  ChartOptions,
+} from "chart.js";
 import { Bar, Line } from "react-chartjs-2";
-
+import React from "react";
+import { KeyedMutator } from "swr";
 Chart.register(ArcElement, Tooltip, Legend);
-
-const Cards = ({ transactions, isLoading, mutate, mutateStatistics }) => {
-  const [filterByMonth, setFilterByMonth] = useState(false);
-  const [filterByYear, setFilterByYear] = useState(false);
-  const [data, setData] = useState({
+interface Transaction {
+  id: string;
+  amount: number;
+  category: string;
+  date: string;
+  description: string;
+  location: string;
+  paymentType: string;
+  userId: string;
+}
+interface Props {
+  transactions: Transaction[];
+  isLoading: boolean;
+  mutate: KeyedMutator<any>;
+  mutateStatistics: KeyedMutator<any>;
+}
+const Cards = ({
+  transactions,
+  isLoading,
+  mutate,
+  mutateStatistics,
+}: Props) => {
+  const [filterByMonth, setFilterByMonth] = useState<boolean>(false);
+  const [filterByYear, setFilterByYear] = useState<boolean>(false);
+  const [data, setData] = useState<{
+    labels: string[];
+    datasets: {
+      label: string;
+      data: number[];
+      backgroundColor: string[];
+      borderColor: string[];
+      borderWidth: number;
+      borderRadius: number;
+      spacing: number;
+      cutout: number;
+    }[];
+  }>({
     labels: [],
     datasets: [
       {
@@ -26,11 +65,20 @@ const Cards = ({ transactions, isLoading, mutate, mutateStatistics }) => {
       },
     ],
   });
-  const [yearData, setYearData] = useState({
+  const [yearData, setYearData] = useState<{
+    labels: string[];
+    datasets: {
+      label: string;
+      data: number[];
+      borderColor: string;
+      fill: boolean;
+      tension: number;
+    }[];
+  }>({
     labels: [],
     datasets: [
       {
-        label: [],
+        label: "",
         data: [],
         borderColor: "",
         fill: false,
@@ -40,11 +88,24 @@ const Cards = ({ transactions, isLoading, mutate, mutateStatistics }) => {
   });
 
   useEffect(() => {
-    const summarize = (filterBy) => {
+    const summarize = (filterBy: string) => {
       if (transactions) {
+        const monthNames: string[] = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
         if (filterBy === "month") {
           //TODO: List by current month at the moment
-
           const currentDate = new Date();
           const categoryTotals = {};
 
@@ -71,9 +132,11 @@ const Cards = ({ transactions, isLoading, mutate, mutateStatistics }) => {
           const currentDate = new Date();
           const categoryTotals = {};
           const year = currentDate.getUTCFullYear();
-          transactions.forEach((transaction) => {
+          transactions.forEach((transaction: any) => {
             const transactionDate = new Date(transaction?.date);
-            const month = transactionDate.getUTCMonth() + 1;
+            // const month = transactionDate.getUTCMonth();
+            const transactionMonthInString =
+              monthNames[transactionDate.getUTCMonth()];
             const transactionYear = transactionDate.getUTCFullYear();
             if (transactionYear === year) {
               const category = transaction.category;
@@ -82,25 +145,25 @@ const Cards = ({ transactions, isLoading, mutate, mutateStatistics }) => {
                 categoryTotals[category] = {};
               }
 
-              if (!categoryTotals[category][month]) {
-                categoryTotals[category][month] = 0;
+              if (!categoryTotals[category][transactionMonthInString]) {
+                categoryTotals[category][transactionMonthInString] = 0;
               }
 
-              categoryTotals[category][month] += amount;
+              categoryTotals[category][transactionMonthInString] += amount;
             }
           });
-          // console.log(categoryTotals);
+
           return categoryTotals;
         }
       }
     };
     const setChartData = (categoryTotals) => {
-      const categories = [];
-      const totalAmounts = [];
-      const backgroundColor = [];
-      const borderColor = [];
+      const categories: any[] = [];
+      const totalAmounts: any[] = [];
+      const backgroundColor: any[] = [];
+      const borderColor: any[] = [];
 
-      Object.keys(categoryTotals).forEach((key) => {
+      Object.keys(categoryTotals).forEach((key: any) => {
         categories.push(key.toUpperCase());
         totalAmounts.push(categoryTotals[key]);
       });
@@ -135,25 +198,42 @@ const Cards = ({ transactions, isLoading, mutate, mutateStatistics }) => {
     };
     const setYearChartData = (categoryTotals) => {
       if (transactions) {
-        const months = [];
+        const months: number[] = [];
+        const monthNames: string[] = [
+          "January",
+          "February",
+          "March",
+          "April",
+          "May",
+          "June",
+          "July",
+          "August",
+          "September",
+          "October",
+          "November",
+          "December",
+        ];
 
-        const borderColorMap = {
+        const borderColorMap: { [key: string]: string } = {
           expense: "rgba(255, 99, 132)",
           saving: "rgba(63, 195, 128)",
           investment: "rgba(45, 85, 255)",
         };
         transactions.forEach((transaction) => {
-          const month = new Date(transaction?.date).getUTCMonth() + 1;
+          const month = new Date(transaction?.date).getUTCMonth();
           months.push(month);
         });
 
-        const uniqueMonths = [...new Set(months)];
-        uniqueMonths.sort((a, b) => a - b);
+        const uniqueMonthsNumber = [...new Set(months)];
+        uniqueMonthsNumber.sort((a, b) => a - b);
+
+        const uniqueMonths = uniqueMonthsNumber.map((num) => monthNames[num]);
 
         const uniqueMonthArray = Array.from(uniqueMonths);
+
         const categories = Object.keys(categoryTotals);
 
-        const datasets = categories.map((category, index) => {
+        const datasets = categories.map((category) => {
           const data = uniqueMonthArray.map((month) => {
             return categoryTotals[category][month] || 0;
           });
@@ -170,7 +250,7 @@ const Cards = ({ transactions, isLoading, mutate, mutateStatistics }) => {
           datasets: datasets,
         };
 
-        console.log(chartData);
+        // console.log(chartData);
         return chartData;
       }
     };
@@ -178,11 +258,13 @@ const Cards = ({ transactions, isLoading, mutate, mutateStatistics }) => {
       setChartData(summarize("month"));
     } else {
       const chartData = setYearChartData(summarize("year"));
-      setYearData(chartData);
+      if (typeof chartData === "object" && chartData !== null) {
+        setYearData(chartData);
+      }
     }
   }, [filterByMonth, filterByYear, transactions]);
 
-  const optionsForBarChart = {
+  const optionsForBarChart: ChartOptions<"bar"> = {
     // indexAxis: "y",
     // responsive: true,
     plugins: {
@@ -200,7 +282,7 @@ const Cards = ({ transactions, isLoading, mutate, mutateStatistics }) => {
       },
     },
   };
-  const optionsForLineChart = {
+  const optionsForLineChart: ChartOptions<"line"> = {
     plugins: {
       legend: {
         position: "top",
@@ -230,7 +312,6 @@ const Cards = ({ transactions, isLoading, mutate, mutateStatistics }) => {
                 className="sm:w-fit lg:w-full"
                 onClick={() => {
                   setFilterByMonth(!filterByMonth);
-                  // setChartData(summarize("month"));
                 }}
                 icon={<BarChartOutlined />}
               >
@@ -240,8 +321,6 @@ const Cards = ({ transactions, isLoading, mutate, mutateStatistics }) => {
                 className="sm:w-fit lg:w-full"
                 onClick={() => {
                   setFilterByYear(!filterByYear);
-                  // const chartData = setYearChartData(summarize("year"));
-                  // setYearData(chartData);
                 }}
                 icon={<BarChartOutlined />}
               >

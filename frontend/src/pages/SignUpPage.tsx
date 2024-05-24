@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import RadioButton from "../components/RadioButton";
-import InputField from "../components/InputField";
+import RadioButton from "../components/RadioButton.tsx";
+import InputField from "../components/InputField.tsx";
 import toast from "react-hot-toast";
-import { signup } from "../services/user";
-
+import { signup } from "../services/user.ts";
+import React from "react";
 const SignUpPage = () => {
   const [signUpData, setSignUpData] = useState({
     name: "",
@@ -12,7 +12,9 @@ const SignUpPage = () => {
     password: "",
     gender: "",
   });
-  const handleSubmit = async (e) => {
+  const handleSubmit: React.FormEventHandler<HTMLFormElement> = async (
+    e: React.FormEvent
+  ) => {
     e.preventDefault();
     try {
       const signUpEmail = signUpData.username + "@gmail.com";
@@ -38,7 +40,9 @@ const SignUpPage = () => {
       toast.error(error.message);
     }
   };
-  const handleChange = (e) => {
+  const handleChange: React.ChangeEventHandler<HTMLInputElement> = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const { name, value, type } = e.target;
 
     if (type === "radio") {
@@ -93,7 +97,6 @@ const SignUpPage = () => {
                 <RadioButton
                   id="male"
                   label="Male"
-                  name="gender"
                   value="male"
                   onChange={handleChange}
                   checked={signUpData.gender === "male"}
@@ -101,7 +104,6 @@ const SignUpPage = () => {
                 <RadioButton
                   id="female"
                   label="Female"
-                  name="gender"
                   value="female"
                   onChange={handleChange}
                   checked={signUpData.gender === "female"}

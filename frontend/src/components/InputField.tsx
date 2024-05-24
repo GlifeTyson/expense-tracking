@@ -1,4 +1,20 @@
-const InputField = ({ label, id, name, type = "text", onChange, value }) => {
+import React from "react";
+interface Props {
+  label: string;
+  id: string;
+  name: string;
+  type?: string;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  value: string;
+}
+const InputField = ({
+  label,
+  id,
+  name,
+  type = "text",
+  onChange,
+  value,
+}: Props) => {
   return (
     <div>
       <label htmlFor={id} className="block text-sm font-medium text-gray-700">

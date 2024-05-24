@@ -1,4 +1,12 @@
-const RadioButton = ({ id, label, onChange, value, checked }) => {
+import React from "react";
+interface Props {
+  id: string;
+  label: string;
+  onChange: (event: React.ChangeEvent<HTMLInputElement>) => void;
+  value: string;
+  checked: boolean;
+}
+const RadioButton = ({ id, label, onChange, value, checked }: Props) => {
   return (
     <div className="inline-flex items-center">
       <label

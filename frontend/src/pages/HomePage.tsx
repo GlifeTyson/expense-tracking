@@ -1,32 +1,69 @@
 import { Doughnut, Bar, Pie } from "react-chartjs-2";
-import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
-import Cards from "../components/Cards";
-import TransactionForm from "../components/TransactionForm";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  ChartOptions,
+} from "chart.js";
+import Cards from "../components/Cards.tsx";
+import TransactionForm from "../components/TransactionForm.tsx";
 import { MdLogout } from "react-icons/md";
 import toast from "react-hot-toast";
 import {
   getTransactions,
   getTransactionStatistics,
-} from "../graphql/queries/transaction.queries";
+} from "../graphql/queries/transaction.queries.ts";
 import { useContext, useEffect, useState } from "react";
 import Auth from "../utils/auth.js";
-import useSWR from "swr";
-import { UserContext } from "../contexts/UserProvider.jsx";
-import { fetcher } from "../services/fetcher.js";
+import useSWR, { KeyedMutator } from "swr";
+import { UserContext } from "../contexts/UserProvider.tsx";
+import { fetcher } from "../services/fetcher.ts";
 import { Button } from "antd";
 import { BarChartOutlined, PieChartOutlined } from "@ant-design/icons";
 import Chart from "chart.js/auto";
+import React from "react";
 
-// ChartJS.register(ArcElement, Tooltip, Legend);
-// ChartJS.unregister(ArcElement,Tooltip,Legend);
-
+interface Transaction {
+  id: string;
+  amount: number;
+  category: string;
+  date: string;
+  description: string;
+  location: string;
+  paymentType: string;
+  userId: string;
+}
+interface TransactionType {
+  myTransactions: Transaction[];
+}
+interface SWRResult<TData> {
+  data?: TData;
+  isLoading: boolean;
+  isValidating: boolean;
+  mutate: KeyedMutator<any>; // Định nghĩa kiểu cho mutate
+}
 Chart.register(ArcElement, Tooltip, Legend);
-
+type ChartData = {
+  labels: string[];
+  datasets: {
+    label: string;
+    data: number[];
+    backgroundColor: string[];
+    borderColor: string[];
+    borderWidth: number;
+    borderRadius: number;
+    spacing: number;
+    cutout: number;
+    hoverOffset: number;
+  }[];
+};
 const HomePage = () => {
   const { me } = useContext(UserContext);
-  const [transactions, setTransactions] = useState([]);
+
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [chartType, setChartType] = useState("bar");
-  const [chartData, setChartData] = useState({
+  const [chartData, setChartData] = useState<ChartData>({
     labels: [],
     datasets: [
       {
@@ -38,11 +75,12 @@ const HomePage = () => {
         borderRadius: 10,
         spacing: 10,
         cutout: 130,
+        hoverOffset: 15,
       },
     ],
   });
   const params = {
-    filter: { userId: me.id },
+    filter: { userId: me ? me.id : null },
     first: 50,
     skip: 0,
     orderBy: "createdAt_DESC",
@@ -50,11 +88,10 @@ const HomePage = () => {
   //TODO: fetch transaction base on user logged in
   const {
     data: transactionData,
-    error: transactionError,
     isLoading: transactionLoading,
     isValidating: transactionValidating,
     mutate: mutateTransaction,
-  } = useSWR([getTransactions, params], fetcher);
+  }: SWRResult<TransactionType> = useSWR([getTransactions, params], fetcher);
 
   //TODO: fetch statistics
   const {
@@ -77,8 +114,8 @@ const HomePage = () => {
         const totalAmounts = statisticsData.categoryStatistics.map(
           (stat) => stat.totalAmount
         );
-        const backgroundColors = [];
-        const borderColors = [];
+        const backgroundColors: string[] = [];
+        const borderColors: string[] = [];
         categories.forEach((category) => {
           if (category === "EXPENSE") {
             backgroundColors.push("rgba(255, 99, 132)");
@@ -111,7 +148,7 @@ const HomePage = () => {
     }
   }, [transactionData, statisticsData]);
 
-  const handleLogout = () => {
+  const handleLogout: () => void = () => {
     try {
       Auth.logout();
       if (Auth.check()) {
@@ -124,7 +161,7 @@ const HomePage = () => {
       toast.error(error.message);
     }
   };
-  const optionsForBarChart = {
+  const optionsForBarChart: ChartOptions<"bar"> = {
     // responsive: true,
     plugins: {
       legend: {
@@ -141,9 +178,7 @@ const HomePage = () => {
       },
     },
   };
-  const optionsForDoughnutChart = {
-    // indexAxis: "y",
-    // responsive: true,
+  const optionsForDoughnutChart: ChartOptions<"pie"> = {
     plugins: {
       legend: {
         position: "top",
@@ -199,15 +234,9 @@ const HomePage = () => {
 
               <div className="h-[330px] w-[330px] md:h-[360px] md:w-[500px] flex flex-col items-center justify-center">
                 {chartType === "doughnut" ? (
-                  <>
-                    <Pie data={chartData} options={optionsForDoughnutChart} />
-                    {/* <p className="text-center">Doughnut chart</p> */}
-                  </>
+                  <Pie data={chartData} options={optionsForDoughnutChart} />
                 ) : (
-                  <>
-                    <Bar data={chartData} options={optionsForBarChart} />
-                    {/* <p className="text-center">Bar chart</p> */}
-                  </>
+                  <Bar data={chartData} options={optionsForBarChart} />
                 )}
               </div>
             </div>

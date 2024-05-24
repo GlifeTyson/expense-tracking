@@ -1,13 +1,25 @@
 import React, { useState, useEffect } from "react";
-import Auth from "../utils/auth";
+import Auth from "../utils/auth.ts";
 import useSWR from "swr";
 import { fetchMe } from "../graphql/queries/user.queries";
 import { fetcher } from "../services/fetcher";
+interface User {
+  id: string;
+  name: string;
+  profilePicture: string;
+}
+interface UserContextType {
+  me: User | null;
+  handleLogout: () => void;
+}
+const defaultContextValue: UserContextType = {
+  me: null,
+  handleLogout: () => {},
+};
+const UserContext = React.createContext<UserContextType>(defaultContextValue);
 
-const UserContext = React.createContext();
-
-function UserProvider({ children }) {
-  const [me, setMe] = useState(null);
+function UserProvider({ children }: { children: React.ReactNode }) {
+  const [me, setMe] = useState<User | null>(null);
 
   const { data, error, isLoading, isValidating, mutate } = useSWR(
     [fetchMe, {}],
