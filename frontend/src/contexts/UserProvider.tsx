@@ -6,7 +6,11 @@ import { fetcher } from "../services/fetcher";
 interface User {
   id: string;
   name: string;
+  username: string;
   profilePicture: string;
+  role: {
+    name: string;
+  };
 }
 interface UserContextType {
   me: User | null;

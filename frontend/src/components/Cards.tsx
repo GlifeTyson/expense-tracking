@@ -241,7 +241,7 @@ const Cards = ({
             label: category,
             data: data,
             borderColor: borderColorMap[category],
-            fill: true,
+            fill: false,
             tension: 0.3,
           };
         });

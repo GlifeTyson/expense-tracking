@@ -75,3 +75,20 @@ query Query($transactionId: ID!) {
   }
 }
 `;
+export const getAllTransactions: string = `
+query AllTransactions($filter: FilterTransaction, $first: Int, $skip: Int, $orderBy: TransactionOrder, $include: String) {
+  allTransactions(filter: $filter, first: $first, skip: $skip, orderBy: $orderBy, include: $include) {
+    id
+    amount
+    category
+    description
+    paymentType
+    date
+    location
+    userId
+    user {
+      username
+    }
+  }
+}
+`;

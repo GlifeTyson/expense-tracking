@@ -9,30 +9,29 @@ import { Toaster } from "react-hot-toast";
 import { useContext } from "react";
 import { UserContext } from "./contexts/UserProvider.tsx";
 import React from "react";
+import AdminPage from "./pages/AdminPage.tsx";
+import AdminHeader from "./components/ui/AdminHeader.tsx";
 
 function App() {
-  // const authUser = true;
-  // return (
-  //   <>
-  //     {authUser && <Header />}
-  //     <Routes>
-  //       <Route path="/" element={<HomePage />} />
-  //       <Route path="/login" element={<LoginPage />} />
-  //       <Route path="/signup" element={<SignUpPage />} />
-  //       <Route path="/transaction/:id" element={<TransactionPage />} />
-  //       <Route path="*" element={<NotFound />} />
-  //     </Routes>
-  //   </>
-  // );
   const { me } = useContext(UserContext);
-
+  // console.log("me", me?.role.name);
   return (
-    <>
-      {me && <Header />}
+    <div className={me?.role?.name === "superadmin" ? "bg-white" : "bg-black"}>
+      {me && (me?.role.name === "user" ? <Header /> : <AdminHeader />)}
       <Routes>
         <Route
           path="/"
-          element={me ? <HomePage /> : <Navigate to={"/login"} />}
+          element={
+            me ? (
+              me?.role.name === "user" ? (
+                <HomePage />
+              ) : (
+                <AdminPage />
+              )
+            ) : (
+              <Navigate to={"/login"} />
+            )
+          }
         />
         <Route
           path="/login"
@@ -49,7 +48,7 @@ function App() {
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
       <Toaster />
-    </>
+    </div>
   );
 }
 

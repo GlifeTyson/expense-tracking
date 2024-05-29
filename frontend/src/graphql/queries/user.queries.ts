@@ -38,6 +38,24 @@ export const fetchMe: string = `
       id
       username
       profilePicture
+      role{
+        name
+      }
     }
   }
+`;
+
+export const fetchAllUser: string = `
+query Query($filter: UserFilter, $first: Int, $skip: Int, $orderBy: UserOrder, $include: String) {
+  allUsers(filter: $filter, first: $first, skip: $skip, orderBy: $orderBy, include: $include) {
+    email
+    fullName
+    gender
+    id
+    username
+    role {
+      name
+    }
+  }
+}
 `;
